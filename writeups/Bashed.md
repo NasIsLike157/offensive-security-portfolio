@@ -18,7 +18,7 @@ The assessment will start with the intention to find open ports on the machine, 
 > rustsacn -a 10.129.10.68
 ```
 
-![[Images/Bashed-rustscan-1.png]]
+![image](../Images/Bashed-rustscan-1.png)
 
 `Rustscan` quickly confirms that port 80 is the only open port. Now, ill use `nmap` to get more information regarding the service running on it. 
 
@@ -30,20 +30,20 @@ Now that we have list of open ports  (this case it only one port), use `nmap` , 
 > sudo nmap 10.129.10.68 -p 80 -sCV -oN bashed.nmap
 ```
 
-![[Bashed-nmap-1.png]]
+![[Bashed-nmap-1.png)
 
 As for now, we know this machine has one port open, port `80` , this is a web site hosted on an Apache httpd web server and its version is `2.4.18`. We can search for vulnerabilities regarding this version. Lets go deeper into the information gathering phase and and use specific Web application enumeration techniques.
 
 Simple `http` request to the address return this `html` page.
 
-![[Bashed-website-index.html.png]]
+![[Bashed-website-index.html.png)
 
 This page isn't offering much, we have one line in the page to this page `single.html`.
 
 
 We can learn few things from the page `single.html` , first as we can see the an "advertisement" to a `phpbash` web shell. In the image below we can see "leaked" endpoint `/uploads/phpbash.php`, as we will later see, this endpoint results in `404` (Not Found)
 
-![[Bashed-single.html.png]]
+![[Bashed-single.html.png)
 
 
 ### What is a Web Shell?
@@ -57,7 +57,7 @@ In my words : A web shell is a code (Written by an hacker) that is written in la
 
 Back to the machine, lets try to access the reverse shell in `/uploads/phpbash.php`. 
 
-![[Bashed-phpbash.php-1.png]]
+![[Bashed-phpbash.php-1.png)
 
 As we can see the page was not found. With a quick check i can confirm the `uploads` directory is real, lets take this one step further and perform directory busting.
 
@@ -75,7 +75,7 @@ Let's perform directory busting on `10.129.10.68` . We will use a tool called `f
 
 We use `-w` to specify wordlist , and `-u` to enter the `url`, In `ffuf` the indication of the `FUZZ` keyword means and strings in the wordlist will be placed here, again one string at a time.
 
-![[Bashed-ffuf-1.png]]
+![[Bashed-ffuf-1.png)
 
 The results confirms the tool found few endpoints, by examining the error status 301 we can learn these are all directories.
 
@@ -94,7 +94,7 @@ The `php` directory can indicate this server can execute `php` code.
 
 
 `dev` - Development directories often leaks data, as the programmer feels safe to place vulnerable code or sometimes even clear text credentials. If we enter the `/dev` folder we can find the desired `/phpbash.php` file:
-![[Bashed-dev.png]]
+![[Bashed-dev.png)
 
 A web server must be configured so a regular user will have access only to user content. Development directories and such must be placed outside of the server execution path or must be protected with a password or with a tougher mechanism. 
 
@@ -111,12 +111,12 @@ By the end of the enumeration phase we found this endpoint: `http://10.129.1.4/d
 
 Accessing this page confirms this is a web shell:
 
-![[Bashed-dev.php-2.png]]
+![[Bashed-dev.php-2.png)
 
 
 Using the input box down below we can run commands on the target , we can see we have control over the `www-data` user.  Lets use this platform to get a stable reverse shell.
 
-![[Bashed-dev.commands.png]]
+![[Bashed-dev.commands.png)
 
 
 ### What is a reverse shell?
@@ -149,7 +149,7 @@ From the Web shell we will run this command to download the file and save it und
 
 After executing the `wget` command we will get feedback on the python server that the file has been successfully downloaded.
 
-![[Bashed-get-rev.sh.png]]
+![[Bashed-get-rev.sh.png)
 
 
 For some reason, i had problems with `chmod +x /tmp/rev.sh`, as it it resulted in an error, instead we can run bash with the script as an argument, this way we can run file without execution rights.
@@ -158,7 +158,7 @@ For some reason, i had problems with `chmod +x /tmp/rev.sh`, as it it resulted i
 > /bin/bash /tmp/rev.sh
 ```
 
-![[Bashed-getting-rev.png]]
+![[Bashed-getting-rev.png)
 
 
 ## Lateral Movement
@@ -181,7 +181,7 @@ Now can run the following command to see `sudo` configurations regarding out cur
 > sudo -l
 ```
 
-![[Bashed-priv-esc.png]]
+![[Bashed-priv-esc.png)
 
 As we can see we can run every command as the user `scriptmanager` without the need for password. This indicate a low security posture. We can abuse this to run `bash` as the user `scriptmanager` resulting in  a full shell as the `scriptmanager` user.
 
@@ -189,7 +189,7 @@ As we can see we can run every command as the user `scriptmanager` without the n
 sudo -u scriptmanager /bin/bash
 ```
 
-![[Bashed-leteral-movement.png]]
+![[Bashed-leteral-movement.png)
 
 As you can see the shell has no prompt and we can also infer it is not interactive as well , lets fix using the same python command:
 
@@ -197,7 +197,7 @@ As you can see the shell has no prompt and we can also infer it is not interacti
 python3 -c 'import pty; pty.spawn("/bin/bash")'
 ```
 
-![[Bashed-python-shell-upgrade.png]]
+![[Bashed-python-shell-upgrade.png)
 
 
 
@@ -213,33 +213,33 @@ We can host `linpeas.sh` file in the same directory where we opened the python w
 
 > Dont forget to use `chmod` before executing the file.
 
-![[Bashed-privesc2.png]]
+![[Bashed-privesc2.png)
 
 
 ### Inspecting linpeas Results
 
 The script has fond a directory called `scripts` in the root (`/`) directory. 
 
-![[Bashed-linpeas1.png]]
+![[Bashed-linpeas1.png)
 
 Moving into the directory the listing the files inside shows two file a python script and a text file.
 
-![[Bashed-scripts.png]]
+![[Bashed-scripts.png)
 
 Observing the file revels the script algorithm, it creates a file called `text.txt` (the second file) and write a string into it. The most interesting part in this situation is that this file is editable by the `scriptmanager` user which we control.
 
-![[Bashed-test.py.png]]
+![[Bashed-test.py.png)
  
  If all the clues pointing to that this is a script that gets executed on each x time (We can see the file has been executed already and the directory name is scripts) are not enough, we can prove this is a script using `pspy`.
  `pspy` is process monitoring script that prints **all** the process creation events, which can reveal commands executed on the system, which can confirm the same command running at the same intervals. The script can be run as regular user and produce the same result! which makes this tool very powerful at detecting running services. 
 
 Lets again host the file in a python web server and use `wget` to download it, indication of the file being downloaded can be seen below.
 
-![[Bashed-1.png]]
+![[Bashed-1.png)
 
 After running the file, we must wait some time for the script to be run, after the script execution we can see the output below, if we check the `PID` numbering we can see this is a a `cron` job that executes any python scripts that are  in the `scripts` directory.  We can also see that this gets executed with the highest privilege possible (`UID=0`)
 
-![[Bashed-running-pspy32.png]]
+![[Bashed-running-pspy32.png)
 
 ### Abusing Cron Jobs for PrivEsc
 
@@ -251,11 +251,11 @@ We have a service which is running almost every minute (`pspy`) , and is execute
 
 First, lets keep the original file save and rename it to something else so it doesn't get overwritten by the new file.  
 
-![[Bashed-mv-bckp.png]]
+![[Bashed-mv-bckp.png)
 
 The script looks as following, it creates a socket, bind it to our listener and attach a shell process to it.
 
-![[Bashed-python-rev.py.png]]
+![[Bashed-python-rev.py.png)
 
 
 ```python
@@ -282,11 +282,11 @@ The file is now downloaded and placed in `/scripts` where it will get executes s
 
 As we can see:
 
-![[Bashed-root.png]]
+![[Bashed-root.png)
 
 And the system flag can be found on `/root` : 
 
-![[Bashed-root.txt.png]]
+![[Bashed-root.txt.png)
 
 
 ## Mitigation

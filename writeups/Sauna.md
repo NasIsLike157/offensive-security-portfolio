@@ -10,7 +10,7 @@ Enumeration phase begins with a open ports scan, i use `rustscan` as it produces
 > rustscan -a 10.129.2.204 --ulimit 5000
 ```
 
-![[Sauna-rustsacn-1.png]]
+![[Sauna-rustsacn-1.png)
 
 The initial output revels open ports , `53` , `80` , `88` , `135` , `139` , `389` , `445` , `464` , `593` ,`3268` , `5985` , `9389` And some higher ports. Lets use `nmap` to run a version detection (Using `-sV`) and use `nmap` capabilities as a script engine to run a script on each port to extract extra information(Using `-sC`).
 
@@ -18,7 +18,7 @@ The initial output revels open ports , `53` , `80` , `88` , `135` , `139` , `389
 > sudo nmap -p 53,80,88,135,139,389,445,464,593,3268,5985 -sCV -oN sauna.nmap
 ```
 
-![[Sauna-nmap-1.png]]
+![[Sauna-nmap-1.png)
 
 Lets review the `nmap` output. port `53` and `88` (Also `464`) indicates this is a kerberos server (AKA `KDC`) and also `LDAP` server, this machine has `smb` port open which we can check if they misconfigured to allow access no anonymous users. Also this machine is running a web server on port `80`. I believe we have every right to infer this machine plays the role of a `DC`, so we will keep that in mind through out the rest of the assessment.
 
@@ -32,27 +32,27 @@ Lets review the `nmap` output. port `53` and `88` (Also `464`) indicates this is
 > enum4linux-ng -A 10.129.2.204
 ```
 
-![[Sauna-enum4linux-1.png]]
+![[Sauna-enum4linux-1.png)
 
 This machine isnt configured to allow any anonymous bind with any service , also the `smb` and windows version looks find and pretty much up to date. We did extract some information about the computer name `sauna` and the domain name `EGOTISTICAL-BANK.LOCAL` 
 
-![[Sauna-enum4linux-2.png]]
+![[Sauna-enum4linux-2.png)
 
 
 ## Port 80 - IIS 10.0
 
 Egotistical Bank website is presented on the server. There are links to other `html` pages presented on the top of the page.
 
-![[Sauna-index,php.png]]
+![[Sauna-index,php.png)
 
 
 Scrolling all the way down we can confirm this is a static `html` page, we also see all the links presented in the page point to an `html` page. 
 
-![[Sauna-html.png]]
+![[Sauna-html.png)
 
 Other then that we find this `leave a reply` field but this generate nothing.
 
-![[Sauna-no-interaction.png]]
+![[Sauna-no-interaction.png)
 ### Running Directory Busting
 
 Before digging into each page lets simulate crawling, by using `ffuf` a fuzzing tool to list all accessible endpoints, we expand the regular search by looking for `html` files in addition to plain directory names, we can do it by adding the `-e` flag (Stands for extensions)   
@@ -63,7 +63,7 @@ Before digging into each page lets simulate crawling, by using `ffuf` a fuzzing 
 
 Which returns the following output 
 
-![[Sauna-ffuf-2.png]]
+![[Sauna-ffuf-2.png)
 
 As of now we can confirm an attack surface of 
 
@@ -80,12 +80,12 @@ Each page reviewed presented a plain html content without any interesting input 
 
 ### About.html
 
-![[Sauna-about.html-1.png]]
+![[Sauna-about.html-1.png)
 
 The `about.html` page reveals a list of company employers names, we can use this information to potentially get a valid user on this machine. With this machine  also being the DC there is a high chance that these employs also  have users as part of the domain, in the next section we will see how we can maneuver this information through the kerberos protocol to get a valid user name.
 
 
-![[Sauna-about.html-2.png]]
+![[Sauna-about.html-2.png)
 
 
 
@@ -101,7 +101,7 @@ We will use `username-anarchy`, a tool that generate several potential user name
 
 First lets create a list of full names.
 
-![[Sauna-names-1.png]]
+![[Sauna-names-1.png)
 
 Execute the `username-anarcy` tool and redirect the output to a potential users file:
 
@@ -111,7 +111,7 @@ Execute the `username-anarcy` tool and redirect the output to a potential users 
 
 We can reflect on the output:
 
-![[Sauna-pot_names-1.png]]
+![[Sauna-pot_names-1.png)
 
 ### Using Kerbrute
 
@@ -121,7 +121,7 @@ The `kerbrute` tool comes with the `userenum` module that allows us to insert us
 > kerbrute userenum -d EGOTISTICAL-BANK.LOCAL --dc 10.129.2.204 pot_users
 ```
 
-![[Sauna-kerbrute-1.png]]
+![[Sauna-kerbrute-1.png)
 
 It return a valid username `fsmith`, nice!
 
@@ -138,7 +138,7 @@ Using `impacket-GetNPUsers` we can check if our user `f.smith` is configured in 
 > impacket-GetNPUsers EGOTISTICAL-BANK.LOCAL/fsmith -dc-ip 10.129.2.204 -no-pass
 ```
 
-![[Sauna-impacket-get-npusers-1.png]]
+![[Sauna-impacket-get-npusers-1.png)
 
 Running the tool confirmed the user `f.smith` is configured with `Do not require Kerberos pre-authentication` and we can get the user hash, this can be cracked offline using hashcat.
 
@@ -152,7 +152,7 @@ Lets start by copying the hash to a file using `echo`
 > echo '$krb5asrep$23$fsmith@EGOTISTICAL-BANK.LOCAL:2a24d0bf2fb896461e17ca4fe50e7dc6$456afb6b92c000f4cb41c98cfe6e5dbfb0fcce224f487b902fb85d9be767608e2b36b2993f36cf440fb9b2fa5d96db145f5e883701dfab3ad1f9311aa17f27d713fde2b43c15478a5a80ff35aaf9f.....' > hash
 ```
 
-![[Sauna-hash-1.png]]
+![[Sauna-hash-1.png)
 
 Password cracking can be performed with a lot of tools, for this matter i chose `hashcat` , we must specify the hash type (`-m 18200`) for kerberos `AS-REP` hashes. Check it by your self by traveling to [Hashcat Examples](https://hashcat.net/wiki/doku.php?id=example_hashes) and searching for `ASREP`.Our first choice of a wordlist will be `rockyou` , most of the times in these CTF its enough. 
  
@@ -161,7 +161,7 @@ Password cracking can be performed with a lot of tools, for this matter i chose 
 ```
 
 
-![[Sauna-hashcat-1.png]]
+![[Sauna-hashcat-1.png)
 
 The password can be cracked using the `rockyou` wordlist to the password `Thestrokes23`
 
@@ -171,7 +171,7 @@ $krb5asrep$23$fsmith@EGOTISTICAL-BANK.LOCAL:2a24d0bf2fb896461e17ca4fe50e7dc6$456
 ```
 
 
-![[Sauna-hashcat-2.png]]
+![[Sauna-hashcat-2.png)
 
 
 Lets confirm the user is valid using `netexec`.
@@ -181,7 +181,7 @@ Lets confirm the user is valid using `netexec`.
 ```
 
 
-![[Sauna-user-validation.png]]
+![[Sauna-user-validation.png)
 
 **Enumeration Summarize :** We first started the assessment with a port scan which actually set the tone for the rest of the assessment, we confirmed this was a kerberos server (`kdc`) and by reviewing the `about` page in the website we were able to make a potential user list which was set to test against the `kdc` in a **kerbrute** attack. We found a valid username and using trial and error the user found do be vulnerable to `as-rep roasting` resulting with the gathering of a  user hash which was crack-able using a normal wordlist. By the end of this phase we are founding our self with a valid user using almost only pure enumeration techniques. 
 
@@ -217,15 +217,15 @@ Upload the script using this command :
 upload winPEASx64.exe
 ```
 
-![[Sauna-upload-winpeas-1.png]]
+![[Sauna-upload-winpeas-1.png)
 
 And execute the binary:
 
-![[Sauna-winpeas-1.png]]
+![[Sauna-winpeas-1.png)
 
 Reviewing the script reveals this stored credentials :
 
-![[Sauna-winpeas-2.png]]
+![[Sauna-winpeas-2.png)
 
 Lets Validate the user : 
 
@@ -233,7 +233,7 @@ Lets Validate the user :
 > nxc smb 10.129.2.204 -u svc_loanmgr -p 'Moneymakestheworldgoround!'
 ```
 
-![[Sauna-nxc-2.png]]
+![[Sauna-nxc-2.png)
 
 ## Domain Privilege escalation : DCSync Attack  
 ### Using Bloodhound to find on `svc_manager`
@@ -251,7 +251,7 @@ We can start the process with `bloodhound-python` which is a remote injector for
 > bloodhound-python -d EGOTISTICAL-BANK.LOCAL -u 'svc_loanmgr' -p 'Moneymakestheworldgoround!'  -c All --zip -ns 10.129.95.180
 ```
 
-![[Sauna-bloodhound-python-1.png]]
+![[Sauna-bloodhound-python-1.png)
 
 As we can see the tool collected a lot of information and compressed it into a one zip file, which will now be uploaded to bloodhound server.
 
@@ -264,37 +264,37 @@ Open bloodhound by running :
 
 and your enter credentials : 
 
-![[Sauna-bloodhound-1.png]]
+![[Sauna-bloodhound-1.png)
 
 
 After loging in we will have to upload the data to bloodhound, we scroll the the left menu and select quick upload.
 
 
-![[Sauna-bloodhound-2.png]]
+![[Sauna-bloodhound-2.png)
 
 Select your zip file and click upland.
 
-![[Sauna-bloodhound-2-1.png]]
+![[Sauna-bloodhound-2-1.png)
 
 Confirm that the file uploaded successfully (Administration -> file injest)  
 
-![[Sauna-bloodhound-3.png]]
+![[Sauna-bloodhound-3.png)
 
 
 Return to the start menu and on the search field search for the user `svc_loanmgr` , we can add this user to our owned, if we will need it will help us automate future querys.
 
 
-![[Sauna-bloodhound-4.png]]
+![[Sauna-bloodhound-4.png)
 
 
 On the right we can see a menu for each object selected, we can see information about out currently selected object `svc_loanmgr`, we can see this user has an outbound object control, this means this user has some permission over other object, this will help us moving laterally in the domain or even elevate privileges. 
 
-![[Sauna-bloodhound-5.png]]
+![[Sauna-bloodhound-5.png)
 
 
 By clicking on `outbound object control` we will be presented with the next graph, as we can see the user we control has `getChangesAll` which allow our user to perform DCSync attack.
 
-![[Sauna-bloodhound-6.png]]
+![[Sauna-bloodhound-6.png)
 
 
 ### DCSync Attack
@@ -304,7 +304,7 @@ DCSynx attack is an attack performed as persistence and some time even to elevat
 In bloodhound, if we click on the name of the permission on the right we will see this menu with explanations about the vulnerability and how to abuse it from both linux and windows machine, for linux it is recommending to use `secretsdump`.
 
 
-![[Sauna-bloodhound-7.png]]
+![[Sauna-bloodhound-7.png)
 
 
 From our attack machine we can execute the following command to drop all `NTLM` hashes in the domain, these can be put to Pass the Hash attack.
@@ -315,7 +315,7 @@ From our attack machine we can execute the following command to drop all `NTLM` 
 
 The whole domain got dumped : 
 
-![[Sauna-secretsdump-1.png]]
+![[Sauna-secretsdump-1.png)
 
 
 
@@ -334,4 +334,4 @@ Using the administrator hash to connect via `evil-winrm`
 
 The flag can be found on the administrator Desktop
 
-![[Sauna-flag.png]]
+![[Sauna-flag.png)
