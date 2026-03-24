@@ -1,35 +1,3 @@
-
-# Summery 
-
-Author of the report 
-
-Scope of the activity - defines what we can interact with - which machine ? 
-with respect to the scope, in this report we analyze the security of `bashed` an hack the box, boot2root machine.
-
-- name 
-- difficulty
-- operating system
-- IP
-
-High level overview of the results 
-
-Tools
-
-External Enumeration 
-
-Foothold
-
-Pivoting
-
-Privilege escalation
-
-  Vulnerability
-  fix
-  severity
-  poc
-  screenshot
-
-
 # Enumeration 
 
 As we start every assessment, in order to save time i split the port scan and the service scan into `rustscan`(Port scan) and `nmap` (Service scan). Running `rustscan` revels set of open ports `53` , `88` ,`135`, `139` `445` and more

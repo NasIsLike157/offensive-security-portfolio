@@ -20,14 +20,14 @@ My goal is to develop a structured and in depth approach to penetration testing.
 - [What is a Web Shell](./writeups/Bashed.md#what-is-a-web-shell)
 - [What is a reverse shell](./writeups/Bashed.md#what-is-a-reverse-shell)
 - [File transfer via Python Web server](./writeups/Bashed.md#uploading-the-file-via-python-web-server)
-- [Offline Hash Cracking](./writeups/Active.md#offline-cracking)
-- [BloodHound](./writeups/Active.md#bloodhound)
+- [Offline Hash Cracking](./writeups/Sauna.md#offline-cracking)
+- [BloodHound](./writeups/Sauna.md#bloodhound)
 #### Enumeration and Web Exploitation Techniques:
 -  [Enumeration](./writeups/bashed.md#enumeration)
 - [Directory Busting](./writeups/Bashed.md#what-is-directory-busting)
 - [RPC Enumeration](./writeups/Forest.md#rpc-enumeration)
 - [DNS Enumeration](./writeups/Forest.md#port-53)
-- [SMB Enumeration](./writeups/Active2.md#nxc)
+- [SMB Enumeration](./writeups/Active.md#nxc)
 #### Privilege Escalation And Active Directory
 - [Lateral Movement](./writeups/Bashed.md#lateral-movement)
  - [Privilege escalation](./writeups/Bashed.md#privilege-escalation)
@@ -35,10 +35,10 @@ My goal is to develop a structured and in depth approach to penetration testing.
  - [Abusing Sudo Privileges](./writeups/Bashed.md#abusing-sudo-privileges)
  - [Abusing Cron Jobs](./writeups/Bashed.md#abusing-cron-jobs-for-privesc)
  -  [Abusing GPP](./writeups/Active.md#Groups.XML)
- - [DCSync Attack](./writeups/Active.md#dcsync-attack)
- - [Kerbrute](./writeups/Active.md#kerbrute-how-to-validate-a-user-using-the-kerberos-protocol)
+ - [DCSync Attack](./writeups/Sauna.md#dcsync-attack)
+ - [Kerbrute](./writeups/Sauna.md#kerbrute-how-to-validate-a-user-using-the-kerberos-protocol)
  - [Kerberoast](./writeups/Active.md#kerberoast)
- - [AS-REP roasting](./writeups/Active.md#as-rep-roasting)
+ - [AS-REP roasting](./writeups/Sauna.md#as-rep-roasting)
  - [DACL abuse](./writeups/Forest.md#dacl-abuse)
 
 ## Custom Tools & Projects
