@@ -15,7 +15,7 @@ As part of this assessment we will perform several active scans, including scans
 The assessment will start with the intention to find open ports on the machine, i will use the `RustScan` tool to identify open ports. Then i will use `nmap` to get extra information about the service.
 
 ```bash
-> rustsacn -a 10.129.10.68
+> rustscan -a 10.129.14.104
 ```
 
 ![image](../Images/Bashed-rustscan-1.png)
@@ -27,7 +27,7 @@ The assessment will start with the intention to find open ports on the machine, 
 Now that we have list of open ports  (this case it only one port), use `nmap` , we will specify `-p 80` to scan only the open ports. We will use `-sCV` to try and get version of the service and to run the default `nmap` script on the service which can extract even more information about the service. 
 
 ```bash
-> sudo nmap 10.129.10.68 -p 80 -sCV -oN bashed.nmap
+> sudo nmap 10.129.14.104 -p 80 -sCV -oN bashed.nmap
 ```
 
 ![image](../Images/Bashed-nmap-1.png)
@@ -70,7 +70,7 @@ Directory busting is a technique used to discover hidden files and directories o
 Let's perform directory busting on `10.129.10.68` . We will use a tool called `ffuf` which takes 2 inputs. A `url` to fuzz and a wordlist. Lets first fuzz the `http://10.129.10.68/` endpoint by using very popular wordlist you can find online.
 
 ```bash
-> ffuf -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories-lowercase.txt -u http://10.129.10.68/FUZZ
+> ffuf -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-large-directories-lowercase.txt -u http://10.129.14.104/FUZZ
 ```
 
 We use `-w` to specify wordlist , and `-u` to enter the `url`, In `ffuf` the indication of the `FUZZ` keyword means and strings in the wordlist will be placed here, again one string at a time.

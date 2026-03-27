@@ -50,3 +50,10 @@ My goal is to develop a structured and in depth approach to penetration testing.
 ### C Projects
 - [Hexdump Utility](./C/hexdump/About.md)
 - [Image Filters (BMP Processing)](./C/image-filters/About.md)
+
+## Contact
+
+Feel free to reach out for opportunities, collaborations, or any questions:
+
+- LinkedIn: https://www.linkedin.com/in/ido-nahmani-a99017397/
+- Email: ido.nahmani01@gmail.com
