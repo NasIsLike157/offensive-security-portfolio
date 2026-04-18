@@ -46,6 +46,7 @@ My goal is to develop a structured and in depth approach to penetration testing.
 - [Caesar Cipher](./Python-tools/caesar-chipher/About.md)
 - [Reverse Shell](./Python-tools/Reverse-Shell/About.md)
 - [SSH Client/Server Implementation (Paramiko)](./Python-tools/SSH-Paramiko/About.md)
+- [Host Scanner (UDP - Ping) ](./Python-tools/Hosts-Scanner/About.md)
 
 ### C Projects
 - [Hexdump Utility](./C/hexdump/About.md)
